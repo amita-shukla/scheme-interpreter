@@ -71,7 +71,38 @@ parseAtom = do
 -- liftM operates on value wrapped inside Parser
 -- liftM :: Monad m => (a->b) -> m a -> m b
 parseNumber :: Parser LispVal
-parseNumber = liftM (Number . read) $ many1 digit
+-- parseNumber = liftM (Number . read) $ many1 digit
+-- ex1:
+parseNumber = do
+  a <- many1 digit
+  return $ (Number . read) a
 
 parseExpr :: Parser LispVal
-parseExpr = parseAtom <|> parseString <|> parseNumber
+parseExpr = parseAtom
+  <|> parseString
+  <|> parseNumber
+  <|> parseQuoted
+  <|> do
+        char '('
+        x <- try parseList <|> parseDottedList
+        char ')'
+        return x
+
+parseList :: Parser LispVal
+parseList = liftM List $ sepBy parseExpr spaces
+
+parseDottedList :: Parser LispVal
+parseDottedList = do
+  head <- endBy parseExpr spaces -- endby parse zero or more occurences of parsers, separated and ended by spaces
+  tail <- char '.' >> spaces >> parseExpr
+  return $ DottedList head tail
+
+-- support for single quote syntactic sugar
+-- adding a single quote in front of an atom
+-- enables scheme to treat the atom as literal, intead of
+-- looking for its binding to a variable name
+parseQuoted :: Parser LispVal
+parseQuoted = do
+  char '\''
+  x <- parseExpr
+  return $ List [Atom "quote", x] -- 'quote' x, returns x as LispVal
