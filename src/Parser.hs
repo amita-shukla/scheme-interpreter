@@ -8,7 +8,7 @@ import Text.ParserCombinators.Parsec hiding (spaces)
 import Control.Monad
 
 symbol :: Parser Char
-symbol = oneOf "!$%&|*+ -/: <=? >@^_~#"
+symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
 
 -- >> is bind, can also be used to desugar do notation.
 -- action1 >> action 2 is same as:
