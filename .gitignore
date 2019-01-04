@@ -1,3 +1,5 @@
 .stack-work/
 SchemeParser.cabal
 *~
+*.idea/
+*.iml
