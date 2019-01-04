@@ -16,7 +16,7 @@ data LispVal = Atom String -- atom is variable name
 showVal :: LispVal -> String
 showVal (Atom name) = name
 showVal (Number num) = show num
-showVal (Parser.String s) = s
+showVal (String s) = s
 showVal (Bool True) = "#t"
 showVal (Bool False) = "#f"
 showVal (List contents) = "(" ++ unwordList contents ++ ")"
