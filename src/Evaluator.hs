@@ -1,6 +1,6 @@
 module Evaluator where
 
-import           Parser
+import Types
 
 -- @ matches with constructor components as well as the whole type
 -- e.g. xs@(h:t) gives 3 bindings, complete list xs, head h and tail t

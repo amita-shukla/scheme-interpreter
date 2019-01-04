@@ -5,6 +5,7 @@ module Parser where
 -- for stack project on intellij, add parsec to build-depends in cabal file
 import Text.ParserCombinators.Parsec hiding (spaces)
 import Control.Monad
+import Types
 
 symbol :: Parser Char
 symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
@@ -23,17 +24,6 @@ readExpr input =  case parse parseExpr "lisp" input of
 
 spaces :: Parser ()
 spaces = skipMany1 space
-
-
--- DEFINING DATA TYPES
--- Every thing is of type LispVal in Scheme
-data LispVal = Atom String -- atom is variable name
-             | List [LispVal]
-             | DottedList [LispVal] LispVal -- a list of all elements but the last
-             | Number Integer
-             | String String -- constructor tags and types can have same name
-             | Bool Bool
-
 
 -- We’re back to using the do-notation instead of the >> operator.
 -- This is because we’ll be retrieving the value of our parse (returned by many (noneOf
@@ -107,21 +97,4 @@ parseQuoted = do
   return $ List [Atom "quote", x] -- 'quote' x, returns x as LispVal
 
 
--- I don't know what's a proper place to put this
--- has put this in Evaluator.hs, gave the error:
--- "No instance for (Show LispVal) arising from a use of show
-showVal :: LispVal -> String
-showVal (Atom name) = name
-showVal (Number num) = show num
-showVal (Parser.String s) = s
-showVal (Bool True) = "#t"
-showVal (Bool False) = "#f"
-showVal (List contents) = "(" ++ unwordList contents ++ ")"
-showVal (DottedList head tail) = "(" ++ unwordList head ++ " . " ++ showVal tail ++ ")"
 
--- glue together a list of words with spaces, written in pointfree style
-unwordList :: [LispVal] -> String -- could not use Parser.List here, error: Parser doesnot export List
-unwordList = unwords . map showVal
-
--- calling show on LispVal should display its contents
-instance Show LispVal where show = showVal
