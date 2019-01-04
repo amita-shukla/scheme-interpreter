@@ -1,6 +1,5 @@
 module Parser where
 
-import System.Environment
 -- importing module gets depency errors
 -- stack install parsec
 -- for stack project on intellij, add parsec to build-depends in cabal file
@@ -17,10 +16,10 @@ symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
 --    action2
 -- >> is used when you want to throw the result of prvs action.
 -- >>= is used when you want to use the previous result in the next action.
-readExpr :: String -> String
+readExpr :: String -> LispVal
 readExpr input =  case parse parseExpr "lisp" input of
-  Left err -> "No match: " ++ show err
-  Right val -> "Found value: " ++ show val
+  Left err -> String $ "No match: " ++ show err
+  Right val -> val
 
 spaces :: Parser ()
 spaces = skipMany1 space
@@ -59,7 +58,7 @@ parseAtom = do
   return $
     case atom of
       "#t" -> Bool True
-      "f" -> Bool False
+      "#f" -> Bool False
       _ -> Atom atom
 
 -- many1 returns 1 or more digits returns a Parser String
