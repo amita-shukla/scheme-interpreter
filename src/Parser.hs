@@ -1,10 +1,8 @@
 module Parser where
 
--- importing module gets depency errors
--- stack install parsec
--- for stack project on intellij, add parsec to build-depends in cabal file
 import Text.ParserCombinators.Parsec hiding (spaces)
 import Control.Monad
+import Control.Monad.Except
 import Types
 
 symbol :: Parser Char
@@ -17,10 +15,10 @@ symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
 --    action2
 -- >> is used when you want to throw the result of prvs action.
 -- >>= is used when you want to use the previous result in the next action.
-readExpr :: String -> LispVal
+readExpr :: String -> ThrowsError LispVal
 readExpr input =  case parse parseExpr "lisp" input of
-  Left err -> String $ "No match: " ++ show err
-  Right val -> val
+  Left err -> throwError $ Parser err
+  Right val -> return val
 
 spaces :: Parser ()
 spaces = skipMany1 space
