@@ -13,7 +13,13 @@ eval val@(Bool _)               = return val
 eval (List [Atom "quote", val]) = return val -- refer parseQuoted
                                       -- matching against specific 2 member list,
                                       -- where 1st elem is the symbol quote
+eval (List [Atom "if", pred, conseq, alt]) = do
+  result <- eval pred
+  case result of
+    Bool False -> eval alt
+    otherwise -> eval conseq
 eval (List (Atom func:args))    = mapM eval args >>= apply func -- eval a func, given a list of args
+
 
 -- lookup looks the func among the primitives, if not found, returns false, else applies the args to it
 apply :: String -> [LispVal] -> ThrowsError LispVal
@@ -28,7 +34,20 @@ primitives =
   , ("/", numericBinOp div)
   , ("mod", numericBinOp mod)
   , ("quotient", numericBinOp quot)
-  , ("remainder", numericBinOp rem)
+  , ("remainder", numericBinOp rem),
+  ("=", numBoolBinOp (==)),
+  ("<", numBoolBinOp (<)),
+  (">", numBoolBinOp (>)),
+  ("/=", numBoolBinOp (/=)),
+  (">=", numBoolBinOp (>=)),
+  ("<=", numBoolBinOp (<=)),
+  ("&&", boolBoolBinOp (&&)),
+  ("||", boolBoolBinOp (||)),
+  ("string=?", strBoolBinOp (==)),
+  ("string<?", strBoolBinOp (<)),
+  ("string>?", strBoolBinOp (>)),
+  ("string<=?", strBoolBinOp (<=)),
+  ("string>=?", strBoolBinOp (>=))
   ]
 
 numericBinOp :: (Integer -> Integer -> Integer) -> [LispVal] -> ThrowsError LispVal
@@ -51,3 +70,35 @@ unpackNum (String n) =
         else return $ fst $ head parsed -- fun fact: else is mandatory in haskell
 unpackNum (List [n]) = unpackNum n
 unpackNum someLispVal = throwError $ TypeMismatch "type mismatch" someLispVal
+
+{-
+numBoolBinOp :: (Integer -> Integer -> Bool) -> LispVal -> LispVal -> ThrowsError LispVal
+boolBoolBinOp :: (Bool -> Bool -> Bool) -> LispVal -> LispVal -> ThrowsError LispVal
+strBoolBinOp :: (String -> String -> Bool) -> LispVal -> LispVal -> ThrowsError LispVal
+-}
+
+-- the above functions vary only in types
+boolBinOp :: (LispVal -> ThrowsError a) -> (a -> a -> Bool) -> [LispVal] -> ThrowsError LispVal
+boolBinOp unpack op params =
+  if length params /= 2 -- /= is not equal to instead of !=
+    then throwError $ NumArgs 2 params
+    else do
+      param1 <- unpack (params !! 0)
+      param2 <- unpack (params !! 1)
+      return $ Bool $ param1 `op` param2
+
+numBoolBinOp  = boolBinOp unpackNum
+strBoolBinOp  = boolBinOp unpackStr
+boolBoolBinOp = boolBinOp unpackBool
+
+unpackStr :: LispVal -> ThrowsError String
+unpackStr (String s) = return s
+unpackStr (Number s) = return $ show s
+unpackStr (Bool s)   = return $ show s
+unpackStr notString  = throwError $ TypeMismatch "string" notString
+
+unpackBool :: LispVal -> ThrowsError Bool
+unpackBool (Bool b) = return b
+unpackBool notBool  = throwError $ TypeMismatch "boolean" notBool
+
+
