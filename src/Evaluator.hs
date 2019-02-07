@@ -20,7 +20,7 @@ eval (List [Atom "if", pred, conseq, alt]) = do
     Bool False -> eval alt
     otherwise -> eval conseq
 eval (List (Atom func:args))    = mapM eval args >>= apply func -- eval a func, given a list of args
-
+eval badForm = throwError $ BadSpecialForm "Unrecognized special form" badForm
 
 -- lookup looks the func among the primitives, if not found, returns false, else applies the args to it
 apply :: String -> [LispVal] -> ThrowsError LispVal

@@ -48,4 +48,6 @@ This project follows the tutorial "Write Yourself A Scheme in 48 hours"
 #### Chapter 3
 * Pattern Matching
 
+The underscore after the name is a typical naming convention in Haskell for monadic functions that repeat but do not return a value, e.g until_
+
 
